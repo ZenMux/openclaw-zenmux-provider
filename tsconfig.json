@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": false,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["index.ts", "onboard.ts", "provider-catalog.ts", "zenmux-models.ts"],
+  "exclude": ["node_modules", "dist", "*.test.ts", "*.live.test.ts", "vitest.config.ts"]
+}
