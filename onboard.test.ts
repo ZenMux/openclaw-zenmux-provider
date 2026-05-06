@@ -33,15 +33,14 @@ describe("zenmux onboard", () => {
     expect(providers?.["zenmux"]?.models).toEqual([]);
   });
 
-  it("applyZenmuxProviderConfig registers the default agent model with an alias", () => {
+  it("applyZenmuxProviderConfig does NOT seed agents.defaults.models (regression: would collapse allowlist to 1 entry)", () => {
+    // `agents.defaults.models` doubles as the agent's allowlist. Seeding any
+    // entry (e.g. our default model with a friendly alias) makes openclaw
+    // refuse `/model <other-id>` with "model not allowed". Onboard must leave
+    // this map empty by default so all 135 catalog models stay selectable.
     const out = applyZenmuxProviderConfig({});
-    const agentModels = out.agents?.defaults?.models as
-      | Record<string, { alias?: string } | undefined>
-      | undefined;
-    expect(agentModels).toBeDefined();
-    const entry = agentModels?.[ZENMUX_DEFAULT_MODEL_REF];
-    expect(entry).toBeDefined();
-    expect(entry?.alias).toBe("ZenMux");
+    const agentModels = out.agents?.defaults?.models as Record<string, unknown> | undefined;
+    expect(Object.keys(agentModels ?? {})).toEqual([]);
   });
 
   it("applyZenmuxProviderConfig preserves a user-provided alias", () => {
