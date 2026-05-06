@@ -1,0 +1,1 @@
+{"version":3,"file":"provider-catalog.js","sourceRoot":"","sources":["../provider-catalog.ts"],"names":[],"mappings":"AAAA,wDAAwD;AACxD,wFAAwF;AAGxF,OAAO,EAAE,oBAAoB,EAAE,eAAe,EAAE,MAAM,oBAAoB,CAAC;AAE3E,MAAM,CAAC,KAAK,UAAU,mBAAmB;IACvC,MAAM,MAAM,GAAG,MAAM,oBAAoB,EAAE,CAAC;IAC5C,OAAO;QACL,OAAO,EAAE,eAAe;QACxB,GAAG,EAAE,oBAAoB;QACzB,MAAM;KACP,CAAC;AACJ,CAAC"}

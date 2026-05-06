@@ -49,7 +49,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "OPENCLAW_LIVE_TEST=1 vitest run --testNamePattern=live",
