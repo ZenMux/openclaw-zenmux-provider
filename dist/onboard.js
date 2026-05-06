@@ -9,22 +9,18 @@ export function applyZenmuxProviderConfig(cfg) {
         ...models[ZENMUX_DEFAULT_MODEL_REF],
         alias: models[ZENMUX_DEFAULT_MODEL_REF]?.alias ?? "ZenMux",
     };
+    // Pass an EMPTY catalog so the runtime `buildProvider` (which fetches
+    // /api/v1/models) becomes the sole source of truth for the model list.
+    // Writing a non-empty static catalog to user config shadows runtime
+    // discovery — the user only sees the seeded models. The runtime path
+    // already falls back to a 1-model static catalog (`zenmux/openai/gpt-5.2`)
+    // when discovery is unreachable, so offline behavior is unchanged.
     return applyProviderConfigWithModelCatalog(cfg, {
         agentModels: models,
         providerId: "zenmux",
         api: "openai-completions",
         baseUrl: ZENMUX_BASE_URL,
-        catalogModels: [
-            {
-                id: "openai/gpt-5.2",
-                name: "GPT-5.2",
-                reasoning: false,
-                input: ["text", "image"],
-                cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-                contextWindow: 200000,
-                maxTokens: 8192,
-            },
-        ],
+        catalogModels: [],
     });
 }
 export function applyZenmuxConfig(cfg) {

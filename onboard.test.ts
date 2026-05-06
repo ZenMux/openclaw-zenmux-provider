@@ -23,6 +23,16 @@ describe("zenmux onboard", () => {
     expect(zenmux?.baseUrl).toBe(ZENMUX_BASE_URL);
   });
 
+  it("applyZenmuxProviderConfig writes an EMPTY static catalog so runtime discovery wins", () => {
+    // Regression: writing a non-empty catalog into user config shadows the
+    // runtime /api/v1/models discovery and limits users to the seeded model.
+    const out = applyZenmuxProviderConfig({});
+    const providers = (out.models as Record<string, unknown> | undefined)?.providers as
+      | Record<string, { models?: unknown[] }>
+      | undefined;
+    expect(providers?.["zenmux"]?.models).toEqual([]);
+  });
+
   it("applyZenmuxProviderConfig registers the default agent model with an alias", () => {
     const out = applyZenmuxProviderConfig({});
     const agentModels = out.agents?.defaults?.models as
