@@ -1,12 +1,17 @@
-// External plugin port of the in-tree zenmux extension.
-// Source of truth: openclaw/openclaw extensions/zenmux/provider-catalog.ts (PR #43994).
-import { discoverZenmuxModels, ZENMUX_BASE_URL } from "./zenmux-models.js";
-export async function buildZenmuxProvider() {
-    const models = await discoverZenmuxModels();
+// Returns a small, static provider catalog. The full ZenMux model list (135+)
+// is reachable via `resolveDynamicModel` + `prepareDynamicModel` in index.ts,
+// backed by the singleton in zenmux-capabilities-cache.ts.
+//
+// Keeping the catalog small here matches the canonical openclaw bundled-
+// provider pattern (e.g. extensions/openrouter ships only ~2 entries here)
+// and avoids the cold-cache UX bug where pickers showed an empty/short list
+// until the first inference call warmed a per-call fetch.
+import { staticZenmuxModelDefinitions, ZENMUX_BASE_URL } from "./zenmux-models.js";
+export function buildZenmuxProvider() {
     return {
         baseUrl: ZENMUX_BASE_URL,
         api: "openai-completions",
-        models,
+        models: staticZenmuxModelDefinitions(),
     };
 }
 //# sourceMappingURL=provider-catalog.js.map

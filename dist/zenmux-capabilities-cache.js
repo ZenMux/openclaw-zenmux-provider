@@ -1,0 +1,183 @@
+// Singleton in-memory + disk cache of ZenMux model capabilities.
+//
+// Mirrors the canonical openclaw bundled-provider pattern (see
+// extensions/openrouter in the openclaw npm package): the catalog stays
+// small and curated, and per-model capabilities for any zenmux/<id> are
+// resolved on demand via this cache, with a single-flight network fetch
+// against `https://zenmux.ai/api/v1/models` and a disk-persisted snapshot
+// that survives gateway restarts.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+const ZENMUX_MODELS_URL = "https://zenmux.ai/api/v1/models";
+const FETCH_TIMEOUT_MS = 10_000;
+const DISK_CACHE_FILENAME = "zenmux-models.json";
+const ZENMUX_DEFAULT_CONTEXT_WINDOW = 200_000;
+const ZENMUX_DEFAULT_MAX_TOKENS = 8192;
+const ZENMUX_DEFAULT_COST = {
+    input: 0,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+};
+let cache;
+let fetchInFlight;
+const skipNextMissRefresh = new Set();
+function resolveDiskCacheDir() {
+    return join(resolveStateDir(), "cache");
+}
+function resolveDiskCachePath() {
+    return join(resolveDiskCacheDir(), DISK_CACHE_FILENAME);
+}
+function isValidCapabilities(value) {
+    if (!value || typeof value !== "object")
+        return false;
+    const r = value;
+    return (typeof r["name"] === "string" &&
+        Array.isArray(r["input"]) &&
+        typeof r["reasoning"] === "boolean" &&
+        typeof r["contextWindow"] === "number" &&
+        typeof r["maxTokens"] === "number" &&
+        r["cost"] !== null &&
+        typeof r["cost"] === "object");
+}
+function readDiskCache() {
+    try {
+        const path = resolveDiskCachePath();
+        if (!existsSync(path))
+            return undefined;
+        const raw = readFileSync(path, "utf-8");
+        const payload = JSON.parse(raw);
+        if (!payload || typeof payload !== "object")
+            return undefined;
+        const models = payload.models;
+        if (!models || typeof models !== "object")
+            return undefined;
+        const map = new Map();
+        for (const [id, caps] of Object.entries(models)) {
+            if (isValidCapabilities(caps))
+                map.set(id, caps);
+        }
+        return map.size > 0 ? map : undefined;
+    }
+    catch {
+        return undefined;
+    }
+}
+function writeDiskCache(map) {
+    try {
+        const dir = resolveDiskCacheDir();
+        if (!existsSync(dir))
+            mkdirSync(dir, { recursive: true });
+        writeFileSync(resolveDiskCachePath(), JSON.stringify({ models: Object.fromEntries(map) }), "utf-8");
+    }
+    catch {
+        // best-effort; ignore
+    }
+}
+function extractCost(p) {
+    const get = (a) => a?.[0]?.value ?? 0;
+    return {
+        input: get(p.prompt),
+        output: get(p.completion),
+        cacheRead: get(p.input_cache_read),
+        cacheWrite: get([p.input_cache_write, p.input_cache_write_5_min, p.input_cache_write_1_h].find((t) => t != null && t.length > 0)),
+    };
+}
+function parseModel(model) {
+    const inputModalities = model.input_modalities ?? ["text"];
+    const hasImage = inputModalities.includes("image");
+    return {
+        name: model.display_name || model.id,
+        reasoning: model.capabilities?.reasoning ?? false,
+        input: hasImage ? ["text", "image"] : ["text"],
+        cost: model.pricings ? extractCost(model.pricings) : { ...ZENMUX_DEFAULT_COST },
+        contextWindow: model.context_length ?? ZENMUX_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: ZENMUX_DEFAULT_MAX_TOKENS,
+    };
+}
+async function doFetch() {
+    try {
+        const { response, release } = await fetchWithSsrFGuard({
+            url: ZENMUX_MODELS_URL,
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+            init: { headers: { Accept: "application/json" } },
+            policy: { allowedHostnames: ["zenmux.ai"] },
+            auditContext: "zenmux-model-discovery",
+        });
+        try {
+            if (!response.ok)
+                return;
+            const data = (await response.json());
+            const models = data.data ?? [];
+            if (models.length === 0)
+                return;
+            const map = new Map();
+            for (const m of models)
+                map.set(m.id, parseModel(m));
+            cache = map;
+            writeDiskCache(map);
+        }
+        finally {
+            await release();
+        }
+    }
+    catch {
+        // best-effort: keep whatever's already in cache
+    }
+}
+function triggerFetch() {
+    if (fetchInFlight)
+        return;
+    fetchInFlight = doFetch().finally(() => {
+        fetchInFlight = undefined;
+    });
+}
+// Ensure the cache is populated. Checks in-memory first, then disk, then
+// triggers a background API fetch as a last resort. Does not block.
+function ensureZenmuxModelCache() {
+    if (cache)
+        return;
+    const disk = readDiskCache();
+    if (disk) {
+        cache = disk;
+        return;
+    }
+    triggerFetch();
+}
+// Ensure capabilities for a specific model are available before first use.
+// Awaits at most one in-flight fetch. Called from `prepareDynamicModel`.
+export async function loadZenmuxModelCapabilities(modelId) {
+    ensureZenmuxModelCache();
+    if (cache?.has(modelId))
+        return;
+    let p = fetchInFlight;
+    if (!p) {
+        triggerFetch();
+        p = fetchInFlight;
+    }
+    if (p)
+        await p;
+    if (!cache?.has(modelId))
+        skipNextMissRefresh.add(modelId);
+}
+// Synchronous cache lookup. Used from `resolveDynamicModel`. If the cache
+// exists but the model is missing, triggers a background refresh in case
+// it's a newly added model not yet in the cached snapshot.
+export function getZenmuxModelCapabilities(modelId) {
+    ensureZenmuxModelCache();
+    const result = cache?.get(modelId);
+    if (!result && skipNextMissRefresh.delete(modelId))
+        return undefined;
+    if (!result && cache && !fetchInFlight)
+        triggerFetch();
+    return result;
+}
+// Test-only: clear the singleton state between tests.
+export function _resetCacheForTesting() {
+    cache = undefined;
+    fetchInFlight = undefined;
+    skipNextMissRefresh.clear();
+}
+//# sourceMappingURL=zenmux-capabilities-cache.js.map

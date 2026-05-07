@@ -3,14 +3,15 @@ import { buildZenmuxProvider } from "./provider-catalog.js";
 import { ZENMUX_BASE_URL } from "./zenmux-models.js";
 
 describe("buildZenmuxProvider", () => {
-  it("returns an OpenAI-compatible provider config under VITEST=1", async () => {
-    // vitest auto-sets process.env.VITEST, so discoverZenmuxModels() takes
-    // the static-fallback path and never hits the network.
-    const provider = await buildZenmuxProvider();
+  it("returns a small static OpenAI-compatible provider config (no network)", () => {
+    const provider = buildZenmuxProvider();
     expect(provider.baseUrl).toBe(ZENMUX_BASE_URL);
     expect(provider.api).toBe("openai-completions");
     expect(Array.isArray(provider.models)).toBe(true);
-    expect(provider.models.length).toBeGreaterThan(0);
+    // Catalog stays small on purpose — full discovery happens via
+    // resolveDynamicModel + prepareDynamicModel.
+    expect(provider.models.length).toBeGreaterThanOrEqual(1);
+    expect(provider.models.length).toBeLessThanOrEqual(5);
     expect(provider.models[0]).toMatchObject({
       id: "openai/gpt-5.4",
       name: "GPT-5.4",
