@@ -32,7 +32,7 @@ export default defineSingleProviderPluginEntry({
         // discovered zenmux models with "model not allowed". The primary
         // default model is still set: `applyZenmuxConfig` calls
         // `applyAgentDefaultModelPrimary` itself, so onboarding ends with
-        // `agents.defaults.model.primary = "zenmux/openai/gpt-5.2"` and an
+        // `agents.defaults.model.primary = "zenmux/openai/gpt-5.4"` and an
         // empty `agents.defaults.models` map (no allowlist enforcement).
         applyConfig: (cfg) => applyZenmuxConfig(cfg),
         wizard: {

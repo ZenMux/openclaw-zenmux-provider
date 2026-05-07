@@ -19,8 +19,8 @@ describe("discoverZenmuxModels (VITEST guard)", () => {
     const models = await discoverZenmuxModels();
     expect(models).toHaveLength(1);
     expect(models[0]).toMatchObject({
-      id: "openai/gpt-5.2",
-      name: "GPT-5.2",
+      id: "openai/gpt-5.4",
+      name: "GPT-5.4",
       reasoning: false,
       input: ["text", "image"],
       contextWindow: 200000,
@@ -154,7 +154,7 @@ describe("discoverZenmuxModels (mocked fetch)", () => {
     const mod = await import("./zenmux-models.js?empty");
     const out = await mod.discoverZenmuxModels();
     expect(out).toHaveLength(1);
-    expect(out[0]?.id).toBe("openai/gpt-5.2");
+    expect(out[0]?.id).toBe("openai/gpt-5.4");
   });
 
   it("returns the static fallback when upstream returns a non-2xx", async () => {
@@ -167,7 +167,7 @@ describe("discoverZenmuxModels (mocked fetch)", () => {
     const mod = await import("./zenmux-models.js?http503");
     const out = await mod.discoverZenmuxModels();
     expect(out).toHaveLength(1);
-    expect(out[0]?.id).toBe("openai/gpt-5.2");
+    expect(out[0]?.id).toBe("openai/gpt-5.4");
   });
 
   it("returns the static fallback when fetch throws", async () => {
@@ -179,6 +179,6 @@ describe("discoverZenmuxModels (mocked fetch)", () => {
     const mod = await import("./zenmux-models.js?throw");
     const out = await mod.discoverZenmuxModels();
     expect(out).toHaveLength(1);
-    expect(out[0]?.id).toBe("openai/gpt-5.2");
+    expect(out[0]?.id).toBe("openai/gpt-5.4");
   });
 });

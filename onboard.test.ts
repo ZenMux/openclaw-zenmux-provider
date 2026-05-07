@@ -8,7 +8,7 @@ import { ZENMUX_BASE_URL } from "./zenmux-models.js";
 
 describe("zenmux onboard", () => {
   it("exposes the canonical default model ref", () => {
-    expect(ZENMUX_DEFAULT_MODEL_REF).toBe("zenmux/openai/gpt-5.2");
+    expect(ZENMUX_DEFAULT_MODEL_REF).toBe("zenmux/openai/gpt-5.4");
   });
 
   it("applyZenmuxProviderConfig wires the provider entry and catalog", () => {

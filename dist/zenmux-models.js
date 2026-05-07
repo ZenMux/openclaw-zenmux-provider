@@ -15,8 +15,8 @@ const ZENMUX_DEFAULT_COST = {
 function staticZenmuxModelDefinitions() {
     return [
         {
-            id: "openai/gpt-5.2",
-            name: "GPT-5.2",
+            id: "openai/gpt-5.4",
+            name: "GPT-5.4",
             reasoning: false,
             input: ["text", "image"],
             cost: ZENMUX_DEFAULT_COST,

@@ -12,8 +12,8 @@ describe("buildZenmuxProvider", () => {
     expect(Array.isArray(provider.models)).toBe(true);
     expect(provider.models.length).toBeGreaterThan(0);
     expect(provider.models[0]).toMatchObject({
-      id: "openai/gpt-5.2",
-      name: "GPT-5.2",
+      id: "openai/gpt-5.4",
+      name: "GPT-5.4",
     });
   });
 });

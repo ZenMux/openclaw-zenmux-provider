@@ -1,6 +1,6 @@
 {
   "name": "openclaw-zenmux-provider",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "ZenMux LLM provider plugin for OpenClaw — OpenAI-compatible aggregator with 200+ models",
   "license": "MIT",
   "type": "module",

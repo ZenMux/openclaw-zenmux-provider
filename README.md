@@ -42,7 +42,7 @@ openclaw onboard --zenmux-api-key $ZENMUX_API_KEY
 ```
 
 Or set `ZENMUX_API_KEY` in your environment and OpenClaw will pick it up
-automatically. The default agent model is set to `zenmux/openai/gpt-5.2`; pick
+automatically. The default agent model is set to `zenmux/openai/gpt-5.4`; pick
 a different one with `-m`:
 
 ```bash
