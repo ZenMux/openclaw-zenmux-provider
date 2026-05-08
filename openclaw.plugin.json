@@ -2,7 +2,7 @@
   "id": "zenmux",
   "name": "ZenMux",
   "description": "ZenMux LLM provider — OpenAI-compatible aggregator with 200+ models",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "providers": ["zenmux"],
   "modelSupport": {
     "modelPrefixes": ["zenmux/"]

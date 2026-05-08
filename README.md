@@ -1,4 +1,4 @@
-# openclaw-zenmux-provider
+# @zenmux/openclaw-zenmux-provider
 
 External [OpenClaw](https://docs.openclaw.ai) plugin that adds the
 [ZenMux](https://zenmux.ai) LLM provider — an OpenAI-compatible aggregator that
@@ -14,14 +14,14 @@ it works on stock OpenClaw without waiting for that PR to merge.
 The standard ClawHub flow:
 
 ```bash
-openclaw plugins install clawhub:openclaw-zenmux-provider
+openclaw plugins install clawhub:@zenmux/openclaw-zenmux-provider
 openclaw gateway restart
 ```
 
 A bare npm-safe spec also works — OpenClaw tries ClawHub first, then npm:
 
 ```bash
-openclaw plugins install openclaw-zenmux-provider
+openclaw plugins install @zenmux/openclaw-zenmux-provider
 ```
 
 For local development:
