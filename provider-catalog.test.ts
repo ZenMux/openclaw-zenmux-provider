@@ -13,8 +13,8 @@ describe("buildZenmuxProvider", () => {
     expect(provider.models.length).toBeGreaterThanOrEqual(1);
     expect(provider.models.length).toBeLessThanOrEqual(5);
     expect(provider.models[0]).toMatchObject({
-      id: "openai/gpt-5.4",
-      name: "GPT-5.4",
+      id: "openai/gpt-5.5",
+      name: "GPT-5.5",
     });
   });
 });

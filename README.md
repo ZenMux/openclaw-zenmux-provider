@@ -52,7 +52,9 @@ openclaw chat -m zenmux/google/gemini-3.1-pro-preview "hello"
 
 Available models are discovered dynamically from
 `https://zenmux.ai/api/v1/models` on each catalog refresh; if discovery is
-unreachable, a small static catalog is used as a fallback.
+unreachable, a small curated static catalog is used as a fallback, currently
+including `openai/gpt-5.5`, `openai/gpt-5.4`, `anthropic/claude-sonnet-5`,
+`google/gemini-3.5-flash`, and `x-ai/grok-4.3`.
 
 ## How it works
 

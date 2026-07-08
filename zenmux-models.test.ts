@@ -8,15 +8,22 @@ describe("ZENMUX_BASE_URL", () => {
 });
 
 describe("staticZenmuxModelDefinitions", () => {
-  it("returns the single onboarding default model", () => {
+  it("returns a small curated fallback catalog with current headline models", () => {
     const models = staticZenmuxModelDefinitions();
-    expect(models).toHaveLength(1);
+    expect(models).toHaveLength(5);
+    expect(models.map((m) => m.id)).toEqual([
+      "openai/gpt-5.5",
+      "openai/gpt-5.4",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.5-flash",
+      "x-ai/grok-4.3",
+    ]);
     expect(models[0]).toMatchObject({
-      id: "openai/gpt-5.4",
-      name: "GPT-5.4",
-      reasoning: false,
+      id: "openai/gpt-5.5",
+      name: "GPT-5.5",
+      reasoning: true,
       input: ["text", "image"],
-      contextWindow: 200_000,
+      contextWindow: 1_050_000,
       maxTokens: 8192,
     });
   });
