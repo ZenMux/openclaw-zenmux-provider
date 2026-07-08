@@ -56,6 +56,10 @@ unreachable, a small curated static catalog is used as a fallback, currently
 including `openai/gpt-5.5`, `openai/gpt-5.4`, `anthropic/claude-sonnet-5`,
 `google/gemini-3.5-flash`, and `x-ai/grok-4.3`.
 
+The plugin also prewarms ZenMux provider discovery on `gateway_start`, so a
+fresh OpenClaw boot is more likely to have the latest ZenMux catalog ready
+before the first user inference.
+
 ## How it works
 
 - **Transport:** OpenAI-compatible (`api: "openai-completions"`) against

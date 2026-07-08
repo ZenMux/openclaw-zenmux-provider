@@ -15,6 +15,8 @@ import {
 } from "./zenmux-capabilities-cache.js";
 import { ZENMUX_BASE_URL } from "./zenmux-models.js";
 
+const STARTUP_PROVIDER_DISCOVERY_TIMEOUT_MS = 5_000;
+
 const PROVIDER_ID = "zenmux";
 const ZENMUX_DEFAULT_CONTEXT_WINDOW = 200_000;
 const ZENMUX_DEFAULT_MAX_TOKENS = 8192;
@@ -35,11 +37,36 @@ function buildDynamicZenmuxModel(ctx: { modelId: string }) {
   };
 }
 
+async function prewarmZenmuxCatalogOnGatewayStart(ctx: {
+  config?: unknown;
+  workspaceDir?: string;
+}): Promise<void> {
+  const config = ctx.config;
+  if (!config || typeof config !== "object") return;
+
+  const { ensureOpenClawModelsJson } = await import(new URL("./node_modules/openclaw/dist/agents/models-config.runtime.js", import.meta.url).href);
+
+  await ensureOpenClawModelsJson(config, undefined, {
+    workspaceDir: ctx.workspaceDir,
+    providerDiscoveryProviderIds: [PROVIDER_ID],
+    providerDiscoveryTimeoutMs: STARTUP_PROVIDER_DISCOVERY_TIMEOUT_MS,
+    providerDiscoveryEntriesOnly: true,
+  });
+}
+
 export default definePluginEntry({
   id: PROVIDER_ID,
   name: "ZenMux Provider",
   description: "External ZenMux provider plugin",
   register(api) {
+    api.on("gateway_start", async (_event, ctx) => {
+      try {
+        await prewarmZenmuxCatalogOnGatewayStart(ctx);
+      } catch (err) {
+        api.logger.warn(`ZenMux startup catalog prewarm failed: ${String(err)}`);
+      }
+    });
+
     api.registerProvider({
       id: PROVIDER_ID,
       label: "ZenMux",
